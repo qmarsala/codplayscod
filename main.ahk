@@ -1,106 +1,52 @@
 #SingleInstance force
 #Include %A_ScriptDir%\logger.ahk
+#Include %A_ScriptDir%\game.ahk
 
 SetWorkingDir A_ScriptDir
 
-pointStreaks := [
-{requiredStreak: 3, name: "✈️ UAV"},
-{requiredStreak: 4, name: "🛩️ Counter UAV"},
-{requiredStreak: 12, name: "🛰️ Advanced UAV"},
-{requiredStreak: 30, name: "☢️ Tactical Nuke"}
-]
 state := {
     streak: 0,
-    streakIndex: 1,
-    isAlive: true
+    streakIndex: 1
 }
 logInfo(Format("ready - streak:{1} streakIndex:{2}", state.streak, state.streakIndex))
 
 codIsRunning := false
 loop {
-    monitorResult = monitorCod(codIsRunning, state)
+    monitorResult := monitorCod(codIsRunning)
     codIsRunning := monitorResult.codIsRunning
-    if (codIsRunning) {
-        sleepSeconds := 3
-    } else {
-        sleepSeconds := 30
-        state := processState(monitorResult.state)
+    codIsClosing := monitorResult.codIsClosing
+    if (codIsClosing) {
+        didCrash := monitorResult.codHasCrashed
+        state := processState(state, didCrash)
     }
+    sleepSeconds := codIsRunning ? 3 : 30
     Sleep(sleepSeconds * 1000)
 }
 
-monitorCod(isRunning, currentState) {
+monitorCod(isRunning) {
     if (isRunning) {
-        isRunning := WinExist("ahk_exe cod.exe") > 0
+        newIsRunning := WinExist("ahk_exe cod.exe") > 0
         hasCrashed := WinExist("ahk_exe codCrashHandler.exe") > 0
-        if (isRunning AND !hasCrashed) {
-            return {codIsRunning: isRunning, state: currentState}
+        if (newIsRunning AND !hasCrashed) {
+            result := {codIsRunning: true, codHasCrashed: false, codIsClosing: false}
+            return result
         }
 
         if (hasCrashed) {
-            newState := handleCrash(currentState)
-        } else if (!isRunning) {
-            newState := handleClosing(currentState)
+            logInfo("cod has crashed")
+            result := {codIsRunning: false, codHasCrashed: true, codIsClosing: true}
+            return result
+        } else if (!newIsRunning) {
+            logInfo("cod has closed without crashing")
+            result := {codIsRunning: false, codHasCrashed: false, codIsClosing: true}
+            return result
         }
     } else {
-        isRunning := WinExist("ahk_exe cod.exe") > 0
-        if (isRunning) {
+        newIsRunning := WinExist("ahk_exe cod.exe") > 0
+        if (newIsRunning) {
             logInfo("cod has started")
         }
+        result := {codIsRunning: newIsRunning, codHasCrashed: false, codIsClosing: false}
+        return result
     }
-
-    return {codIsRunning: isRunning, state: newState}
-}
-
-handleCrash(currentState) {
-    logInfo("cod has crashed")
-    codIsRunning := false
-    codHasCrashed := false
-    newState := {streak: currentState.streak, streakIndex: currentState.streakIndex, isAlive: false}
-    return newState
-}
-
-handleClosing(currentState) {
-    logInfo("cod has closed without crashing")
-    newState := {streak: currentState.streak, streakIndex: currentState.streakIndex, isAlive: true}
-    return newState
-}
-
-processState(currentState) {
-    if (currentState.isAlive) {
-        newStreak := currentState.streak + 1
-        newStreakIndex := currentState.streakIndex
-        nextStreak := pointStreaks[currentState.streakIndex]
-        if (newStreak >= nextStreak.requiredStreak) {
-            callInStreak(pointStreaks[currentState.streakIndex].name)
-            newStreakIndex := currentState.streakIndex + 1
-            if (newStreakIndex > 4) {
-                logInfo("rolling streak index")
-                newStreakIndex := 1
-            }
-        }
-    } else {
-        generateKillFeed(currentState.streak)
-        newStreak := 0
-        newStreakIndex := 1
-    }
-
-    newState := {streak: newStreak, streakIndex: newStreakIndex, isAlive: true}
-    logInfo(Format("streak:{1} streakIndex:{2}", newStreak, newStreakIndex))
-    return newState
-}
-
-callInStreak(name){
-    msg := Format("COD called in a {}", name)
-    logInfo(msg)
-    TrayTip(msg)
-}
-
-generateKillFeed(currentStreak) {
-    enemies := ["zamboni", "badcode", "sofakinggoated", "Jev"]
-    nextStreak := pointStreaks[currentState.streakIndex].requiredStreak
-    baseMsg := Format("{} 🔫 COD", enemies[Random(1,4)])
-    msg := currentStreak + 1 >= nextStreak ? Format("(buzzkill) {}", baseMsg) : baseMsg
-    logInfo(msg)
-    TrayTip(msg)
 }
