@@ -6,7 +6,8 @@ SetWorkingDir A_ScriptDir
 pointStreaks := [
 {requiredStreak: 3, name: "✈️ UAV"},
 {requiredStreak: 4, name: "🛩️ Counter UAV"},
-{requiredStreak: 12, name: "🛰️ Advanced UAV"}
+{requiredStreak: 12, name: "🛰️ Advanced UAV"},
+{requiredStreak: 30, name: "☢️ Tactical Nuke"}
 ]
 state := {
     streak: 0,
@@ -21,9 +22,8 @@ loop {
     if (codIsRunning) {
         codIsRunning := WinExist("ahk_exe cod.exe") > 0
         codHasCrashed := WinExist("ahk_exe codCrashHandler.exe") > 0
-
         if (codIsRunning AND !codHasCrashed){
-            Sleep(5000)
+            Sleep(3000)
             continue
         }
 
@@ -65,7 +65,7 @@ processState(currentState) {
             logInfo("COD aquired a streak")
             callInStreak(pointStreaks[currentState.streakIndex].name)
             newStreakIndex := currentState.streakIndex + 1
-            if (newStreakIndex > 3) {
+            if (newStreakIndex > 4) {
                 logInfo("rolling streak index")
                 newStreakIndex := 1
             }
