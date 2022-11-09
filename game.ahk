@@ -7,6 +7,8 @@ pointStreaks := [
 {requiredStreak: 30, name: "☢️ Tactical Nuke"}
 ]
 
+; todo: add a scoreboard and k/d
+
 processState(currentState, didCrash) {
     if (didCrash){
         generateKillFeed(currentState)
