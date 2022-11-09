@@ -62,7 +62,6 @@ processState(currentState) {
         newStreakIndex := currentState.streakIndex
         nextStreak := pointStreaks[currentState.streakIndex]
         if (newStreak >= nextStreak.requiredStreak) {
-            logInfo("COD aquired a streak")
             callInStreak(pointStreaks[currentState.streakIndex].name)
             newStreakIndex := currentState.streakIndex + 1
             if (newStreakIndex > 4) {
@@ -71,8 +70,7 @@ processState(currentState) {
             }
         }
     } else {
-        logInfo("COD died")
-        TrayTip(Format("zamboni 🔫 COD"))
+        generateKillFeed(currentState.streak)
         newStreak := 0
         newStreakIndex := 1
     }
@@ -83,5 +81,16 @@ processState(currentState) {
 }
 
 callInStreak(name){
-    TrayTip(Format("COD called in a {}", name))
+    msg := Format("COD called in a {}", name)
+    logInfo(msg)
+    TrayTip(msg)
+}
+
+generateKillFeed(currentStreak) {
+    enemies := ["zamboni", "badcode", "sofakinggoated", "Jev"]
+    nextStreak := pointStreaks[currentState.streakIndex].requiredStreak
+    baseMsg := Format("{} 🔫 COD", enemies[Random(1,4)])
+    msg := currentStreak + 1 >= nextStreak ? Format("(buzzkill) {}", baseMsg) : baseMsg
+    logInfo(msg)
+    TrayTip(msg)
 }
