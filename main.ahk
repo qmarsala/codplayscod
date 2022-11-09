@@ -17,29 +17,39 @@ state := {
 logInfo(Format("ready - streak:{1} streakIndex:{2}", state.streak, state.streakIndex))
 
 codIsRunning := false
-codHasCrashed := false
 loop {
+    monitorResult = monitorCod(codIsRunning, state)
+    codIsRunning := monitorResult.codIsRunning
     if (codIsRunning) {
-        codIsRunning := WinExist("ahk_exe cod.exe") > 0
-        codHasCrashed := WinExist("ahk_exe codCrashHandler.exe") > 0
-        if (codIsRunning AND !codHasCrashed){
-            Sleep(3000)
-            continue
+        sleepSeconds := 3
+    } else {
+        sleepSeconds := 30
+        state := processState(monitorResult.state)
+    }
+    Sleep(sleepSeconds * 1000)
+}
+
+monitorCod(isRunning, currentState) {
+    if (isRunning) {
+        isRunning := WinExist("ahk_exe cod.exe") > 0
+        hasCrashed := WinExist("ahk_exe codCrashHandler.exe") > 0
+        if (isRunning AND !hasCrashed) {
+            return {codIsRunning: isRunning, state: currentState}
         }
 
-        if (codHasCrashed) {
-            state := handleCrash(state)
-        } else if (!codIsRunning) {
-            state := handleClosing(state)
+        if (hasCrashed) {
+            newState := handleCrash(currentState)
+        } else if (!isRunning) {
+            newState := handleClosing(currentState)
         }
-        state := processState(state)
     } else {
-        Sleep(30000)
-        codIsRunning := WinExist("ahk_exe cod.exe") > 0
-        if (codIsRunning) {
+        isRunning := WinExist("ahk_exe cod.exe") > 0
+        if (isRunning) {
             logInfo("cod has started")
         }
     }
+
+    return {codIsRunning: isRunning, state: newState}
 }
 
 handleCrash(currentState) {
