@@ -7,17 +7,22 @@ pointStreaks := [
 {requiredStreak: 30, name: "☢️ Tactical Nuke"}
 ]
 
-; todo: add a scoreboard and k/d
+scoreboard := {
+    codScore: 0,
+    crashScore: 0
+}
 
 processState(currentState, didCrash) {
     if (didCrash){
         generateKillFeed(currentState)
         newStreak := 0
         newStreakIndex := 1
+        scoreboard.crashScore := scoreboard.crashScore + 1
     } else {
         newStreak := currentState.streak + 1
         newStreakIndex := currentState.streakIndex
         nextStreak := pointStreaks[currentState.streakIndex]
+        scoreboard.codScore := scoreboard.codScore + 1
         if (newStreak >= nextStreak.requiredStreak) {
             callInStreak(pointStreaks[currentState.streakIndex].name)
             newStreakIndex := currentState.streakIndex + 1
@@ -27,6 +32,15 @@ processState(currentState, didCrash) {
             }
         }
     }
+    
+    if(scoreboard.codScore >= 75 || scoreboard.crashScore >= 75){
+        winner := scoreboard.codScore >= 75 ? scoreboard.codScore : scorboard.crashScore
+        msg := Format("Game Over, {} won", winner)
+        sendNotification(msg)
+        newState := {streak: 0, streakIndex: 1}
+        return newState
+    }
+    
     newState := {streak: newStreak, streakIndex: newStreakIndex}
     logInfo(Format("streak:{1} streakIndex:{2}", newStreak, newStreakIndex))
     return newState
@@ -34,7 +48,6 @@ processState(currentState, didCrash) {
 
 callInStreak(name){
     msg := Format("COD called in a {}", name)
-    logInfo(msg)
     TrayTip(msg)
 }
 
@@ -43,6 +56,10 @@ generateKillFeed(currentState) {
     nextStreak := pointStreaks[currentState.streakIndex].requiredStreak
     baseMsg := Format("{} 🔫 COD", enemies[Random(1,4)])
     msg := currentState.streak + 1 >= nextStreak ? Format("(buzzkill) {}", baseMsg) : baseMsg
-    logInfo(msg)
     TrayTip(msg)
+}
+
+sendNotification(msg) {
+    logInfo(msg)
+    TrayTip(Format("{} | cod:{} crash:{}", msg, scoreboard.codScore, scorboard.crashScore))
 }
