@@ -34,7 +34,7 @@ processState(currentState, didCrash) {
     }
     
     if(scoreboard.codScore >= 75 || scoreboard.crashScore >= 75){
-        winner := scoreboard.codScore >= 75 ? scoreboard.codScore : scorboard.crashScore
+        winner := scoreboard.codScore >= 75 ? "COD" : "CRASH"
         msg := Format("Game Over, {} won", winner)
         sendNotification(msg)
         newState := {streak: 0, streakIndex: 1}
