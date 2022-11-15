@@ -6,7 +6,7 @@ SetWorkingDir A_ScriptDir
 
 state := {
     streak: 0,
-    streakIndex: 1
+    streakIndex: 1,
     codScore: 0,
     crashScore: 0
 }
