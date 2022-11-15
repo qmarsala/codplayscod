@@ -27,7 +27,7 @@ processState(currentState, didCrash) {
             callInStreak(pointStreaks[currentState.streakIndex].name)
             newStreakIndex := currentState.streakIndex + 1
             if (newStreakIndex > 4) {
-                logInfo("rolling streak index")
+                logDebug("rolling streak index")
                 newStreakIndex := 1
             }
         }
@@ -35,20 +35,20 @@ processState(currentState, didCrash) {
     
     if(scoreboard.codScore >= 75 || scoreboard.crashScore >= 75){
         winner := scoreboard.codScore >= 75 ? "COD" : "CRASH"
-        msg := Format("Game Over, {} won", winner)
+        msg := Format("Game Over, {} won | cod: {} crash: {}", winner, scoreboard.codScore, scoreboard.crashScore)
         sendNotification(msg)
         newState := {streak: 0, streakIndex: 1}
         return newState
     }
     
     newState := {streak: newStreak, streakIndex: newStreakIndex}
-    logInfo(Format("streak:{1} streakIndex:{2}", newStreak, newStreakIndex))
+    logDebug(Format("streak:{1} streakIndex:{2}", newStreak, newStreakIndex))
     return newState
 }
 
 callInStreak(name){
     msg := Format("COD called in a {}", name)
-    TrayTip(msg)
+    sendNotification(msg)
 }
 
 generateKillFeed(currentState) {
@@ -56,10 +56,10 @@ generateKillFeed(currentState) {
     nextStreak := pointStreaks[currentState.streakIndex].requiredStreak
     baseMsg := Format("{} 🔫 COD", enemies[Random(1,4)])
     msg := currentState.streak + 1 >= nextStreak ? Format("(buzzkill) {}", baseMsg) : baseMsg
-    TrayTip(msg)
+    sendNotification(msg)
 }
 
-sendNotification(msg) {
-    logInfo(msg)
-    TrayTip(Format("{} | cod:{} crash:{}", msg, scoreboard.codScore, scorboard.crashScore))
+sendNotification(msg) { 
+    logDebug(msg)
+    TrayTip(msg)
 }
