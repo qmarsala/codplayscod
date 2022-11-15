@@ -7,24 +7,23 @@ pointStreaks := [
 {requiredStreak: 30, name: "☢️ Tactical Nuke"}
 ]
 
-scoreboard := {
-    codScore: 0,
-    crashScore: 0
-}
-
 processState(currentState, didCrash) {
     if (didCrash){
-        generateKillFeed(currentState)
         newStreak := 0
         newStreakIndex := 1
-        scoreboard.crashScore := scoreboard.crashScore + 1
+        nextCrashScore := currentState.crashScore + 1
+        msg := generateKillFeed()
+        sendNotification(msg, currentState.codScore, nextCrashScore)
     } else {
         newStreak := currentState.streak + 1
         newStreakIndex := currentState.streakIndex
         nextStreak := pointStreaks[currentState.streakIndex]
-        scoreboard.codScore := scoreboard.codScore + 1
+        nextCodScore := currentState.codScore + 1
         if (newStreak >= nextStreak.requiredStreak) {
-            callInStreak(pointStreaks[currentState.streakIndex].name)
+            streakName := pointStreaks[currentState.streakIndex].name
+            msg := Format("COD called in a {}", streakName)
+            sendNotification(msg, nextCodScore, currentState.crashScore)
+
             newStreakIndex := currentState.streakIndex + 1
             if (newStreakIndex > 4) {
                 logDebug("rolling streak index")
@@ -33,33 +32,26 @@ processState(currentState, didCrash) {
         }
     }
     
-    if(scoreboard.codScore >= 75 || scoreboard.crashScore >= 75){
-        winner := scoreboard.codScore >= 75 ? "COD" : "CRASH"
-        msg := Format("Game Over, {} won | cod: {} crash: {}", winner, scoreboard.codScore, scoreboard.crashScore)
+
+    if(nextCodScore >= 75 || nextCrashScore >= 75){
+        winner := nextCodScore >= 75 ? "COD" : "CRASH"
+        msg := Format("Game Over, {} won | cod: {} crash: {}", winner, nextCodScore, nextCrashScore)
         sendNotification(msg)
-        newState := {streak: 0, streakIndex: 1}
-        return newState
+        newState := {streak: 0, streakIndex: 1, codScore: 0, crashScore: 0}
+    } else {
+        newState := {streak: newStreak, streakIndex: newStreakIndex, codScore: nextCodScore, crashScore: nextCrashScore}
     }
-    
-    newState := {streak: newStreak, streakIndex: newStreakIndex}
-    logDebug(Format("streak:{1} streakIndex:{2}", newStreak, newStreakIndex))
+    logDebug(Format("streak:{} streakIndex:{}", newStreak, newStreakIndex))
     return newState
 }
 
-callInStreak(name){
-    msg := Format("COD called in a {}", name)
-    sendNotification(msg)
-}
-
-generateKillFeed(currentState) {
+generateKillFeed() {
     enemies := ["zamboni", "badcode", "sofakinggoated", "Jev"]
-    nextStreak := pointStreaks[currentState.streakIndex].requiredStreak
-    baseMsg := Format("{} 🔫 COD", enemies[Random(1,4)])
-    msg := currentState.streak + 1 >= nextStreak ? Format("(buzzkill) {}", baseMsg) : baseMsg
-    sendNotification(msg)
+    msg := Format("{} 🔫 COD", enemies[Random(1,4)])
+    return msg
 }
 
-sendNotification(msg) { 
+sendNotification(msg, codScore, crashScore) { 
     logDebug(msg)
-    TrayTip(msg)
+    TrayTip(Format("{} | cod: {} crash: {}", msg, codScore, crashScore))
 }
