@@ -8,43 +8,53 @@ pointStreaks := [
 ]
 
 processState(currentState, didCrash) {
-    if (didCrash){
-        newStreak := 0
-        newStreakIndex := 1
-        nextCodScore := currentState.codScore
-        nextCrashScore := currentState.crashScore + 1
-        msg := generateKillFeed()
-        sendNotification(msg, nextCodScore, nextCrashScore)
-    } else {
-        newStreak := currentState.streak + 1
-        newStreakIndex := currentState.streakIndex
-        nextStreak := pointStreaks[currentState.streakIndex]
-        nextCodScore := currentState.codScore + 1
-        nextCrashScore := currentState.crashScore
-        if (newStreak >= nextStreak.requiredStreak) {
-            streakName := pointStreaks[currentState.streakIndex].name
-            msg := Format("COD called in a {}", streakName)
-            sendNotification(msg, nextCodScore, nextCrashScore)
+    newState := didCrash 
+        ? handleCrash(currentState) 
+        : handleClose(currentState)
 
-            newStreakIndex := currentState.streakIndex + 1
-            if (newStreakIndex > 4) {
-                logDebug("rolling streak index")
-                newStreakIndex := 1
-            }
+    newState := checkWinCondition(newState)
+    logDebug(Format("streak: {},  index: {}, codScore: {}, crashScore: {}", newState.streak, newState.streakIndex, newState.codScore, newState.crashScore))
+    return newState
+}
+
+handleCrash(currentState) {
+    nextCodScore := currentState.codScore
+    nextCrashScore := currentState.crashScore + 1
+    msg := generateKillFeed()
+    sendNotification(msg, nextCodScore, nextCrashScore)
+    return { streak: 0, streakIndex: 1, codScore: nextCodScore, crashScore: nextCrashScore }
+}
+
+handleClose(currentState){
+    newStreak := currentState.streak + 1
+    newStreakIndex := currentState.streakIndex
+    nextStreak := pointStreaks[currentState.streakIndex]
+    nextCodScore := currentState.codScore + 1
+    nextCrashScore := currentState.crashScore
+    if (newStreak >= nextStreak.requiredStreak) {
+        streakName := pointStreaks[currentState.streakIndex].name
+        msg := Format("COD called in a {}", streakName)
+        sendNotification(msg, nextCodScore, nextCrashScore)
+
+        newStreakIndex := currentState.streakIndex + 1
+        if (newStreakIndex > 4) {
+            logDebug("rolling streak index")
+            newStreakIndex := 1
         }
     }
-    
+    return { streak: newStreak, streakIndex: newStreakIndex, codScore: nextCodScore, crashScore: nextCrashScore }
+}
 
-    if(nextCodScore >= 75 || nextCrashScore >= 75){
-        winner := nextCodScore >= 75 ? "COD" : "CRASH"
-        msg := Format("Game Over, {} won | cod: {} crash: {}", winner, nextCodScore, nextCrashScore)
-        sendNotification(msg, nextCodScore, nextCrashScore)
-        newState := {streak: 0, streakIndex: 1, codScore: 0, crashScore: 0}
+checkWinCondition(currentState){
+    scoreLimit := 75
+    if(currentState.codScore >= scoreLimit || currentState.crashScore >= scoreLimit){
+        winner := currentState.codScore > currentState.crashScore ? "COD" : "CRASH"
+        msg := Format("Game Over, {} won", winner)
+        sendNotification(msg, currentState.codScore, currentState.crashScore)
+        return {streak: 0, streakIndex: 1, codScore: 0, crashScore: 0}
     } else {
-        newState := {streak: newStreak, streakIndex: newStreakIndex, codScore: nextCodScore, crashScore: nextCrashScore}
+        return currentState
     }
-    logDebug(Format("streak:{} streakIndex:{}", newStreak, newStreakIndex))
-    return newState
 }
 
 generateKillFeed() {
