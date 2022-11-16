@@ -5,7 +5,7 @@
 SetWorkingDir A_ScriptDir
 
 state := loadState()
-logInfo(Format("ready - streak:{} streakIndex:{}", state.streak, state.streakIndex))
+logInfo(Format("ready - codStreak:{} codStreakIndex:{} | crashStreak:{} crashStreakIndex:{}", state.codStreak, state.codStreakIndex, state.crashStreak, state.crashStreakIndex))
 
 codIsRunning := false
 loop {
@@ -52,12 +52,12 @@ monitorCod(isRunning) {
 saveState(currentState) {
     stateFile := "state.csv"
     FileDelete(stateFile)
-    FileAppend(Format("{},{},{},{}`n", currentState.streak, currentState.streakIndex, currentState.codScore, currentState.crashScore), stateFile)
+    FileAppend(Format("{},{},{},{},{},{}`n", currentState.codStreak, currentState.codStreakIndex, currentState.codScore, currentState.crashStreak, currentState.crashStreakIndex, currentState.crashScore), stateFile)
 }
 
 loadState() { 
     stateFile := "state.csv"
-    state := { streak: 0, streakIndex: 1, codScore: 0, crashScore: 0 }
+    state := { codStreak: 0, codStreakIndex: 1, codScore: 0, crashStreak : 0, crashStreakIndex:1, crashScore: 0 }
     if(!FileExist(stateFile)){
         return state
     }
@@ -66,12 +66,16 @@ loadState() {
     loop parse, stateCsv, "," {
         switch A_Index {
             case 1: 
-                state.streak := A_LoopField
+                state.codStreak := A_LoopField
             case 2: 
-                state.streakIndex := A_LoopField
+                state.codStreakIndex := A_LoopField
             case 3:
                 state.codScore := A_LoopField
             case 4: 
+                state.crashStreak := A_LoopField
+            case 5: 
+                state.crashStreakIndex := A_LoopField
+            case 6: 
                 state.crashScore := A_LoopField
         }
     }
