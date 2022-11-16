@@ -23,7 +23,8 @@ _formatLogWithTime(level, message) {
 }
 
 _getTimeStamp() {
-    return FormatTime(A_Now, "MM/dd HH:mm:ss")
+    timeNoMs := FormatTime(A_Now, "MM/dd HH:mm:ss")
+    return Format("{}.{}", timeNoMs, A_MSec)
 }
 
 _appendLine(line, filePath)  {
@@ -34,7 +35,7 @@ _keepFileSmallerThanMb(filePath, maxSizeMb := 1) {
     if (!FileExist(filePath)) {
         return
     }
-    
+
     logFileSize := FileGetSize(filePath, "M")
     if (logFileSize >= maxSizeMb) {
         FileDelete(filePath)
