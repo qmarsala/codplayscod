@@ -8,12 +8,12 @@ pointStreaks := [
 ]
 
 processState(currentState, didCrash) {
-    newState := didCrash 
-        ? handleCrash(currentState) 
-        : handleClose(currentState)
+    newState := didCrash
+    ? handleCrash(currentState)
+    : handleClose(currentState)
 
     newState := checkWinCondition(newState)
-    logDebug(Format("codStreak: {},  codIndex: {}, codScore: {}, crashStreak: {}, crashIndex: {}, crashScore: {}", newState.codStreak, newState.codStreakIndex, newState.codScore,  newState.crashStreak, newState.crashStreakIndex, newState.crashScore))
+    logDebug(Format("codStreak: {}, codIndex: {}, codScore: {}, crashStreak: {}, crashIndex: {}, crashScore: {}", newState.codStreak, newState.codStreakIndex, newState.codScore, newState.crashStreak, newState.crashStreakIndex, newState.crashScore))
     return newState
 }
 
@@ -21,17 +21,17 @@ handleCrash(currentState) {
     newCrashStreak := currentState.crashStreak + 1
     newCrashScore := currentState.crashScore + 1
     newCodScore := currentState.codScore
-    msg := generateKillFeed()
+    msg := generateKillFeed(false)
     sendNotification(msg, newCodScore, newCrashScore)
     newCrashStreakIndex := checkStreakCondition("Crash", newCrashStreak, currentState.crashStreakIndex, newCodScore, newCrashScore)
 
-    return { 
-        codStreak: 0, 
-        codStreakIndex: 1, 
-        codScore: newCodScore, 
+    return {
+        codStreak: 0,
+        codStreakIndex: 1,
+        codScore: newCodScore,
         crashStreak: newCrashStreak,
         crashStreakIndex: newCrashStreakIndex,
-        crashScore: newCrashScore 
+        crashScore: newCrashScore
     }
 }
 
@@ -39,25 +39,27 @@ handleClose(currentState){
     newCrashScore := currentState.crashScore
     newCodStreak := currentState.codStreak + 1
     newCodScore := currentState.codScore + 1
+    msg := generateKillFeed(true)
+    sendNotification(msg, newCodScore, newCrashScore)
     newCodStreakIndex := checkStreakCondition("COD", newCodStreak, currentState.codStreakIndex, newCodScore, newCrashScore)
-    
-    return { 
-        codStreak: newCodStreak, 
-        codStreakIndex: newCodStreakIndex, 
-        codScore: newCodScore, 
+
+    return {
+        codStreak: newCodStreak,
+        codStreakIndex: newCodStreakIndex,
+        codScore: newCodScore,
         crashStreak: 0,
-        crashStreakIndex: 1, 
-        crashScore: newCrashScore 
+        crashStreakIndex: 1,
+        crashScore: newCrashScore
     }
 }
 
-;bleh
+;refactor this stuff
+; - don't like that we need the score because we send a notification
 checkStreakCondition(player, currentStreak, currentStreakIndex, codScore, crashScore){
     nextStreak := pointStreaks[currentStreakIndex]
     if (currentStreak >= nextStreak.requiredStreak) {
         streakName := pointStreaks[currentStreakIndex].name
         msg := Format("{} called in a {}", player, streakName)
-        ;bleh
         sendNotification(msg, codScore, crashScore)
 
         newStreakIndex := currentStreakIndex + 1
@@ -70,6 +72,7 @@ checkStreakCondition(player, currentStreak, currentStreakIndex, codScore, crashS
         return currentStreakIndex
     }
 }
+;end todo
 
 checkWinCondition(currentState){
     scoreLimit := 75
@@ -83,13 +86,39 @@ checkWinCondition(currentState){
     }
 }
 
-generateKillFeed() {
+generateKillFeed(forCod) {
     enemies := ["zamboni", "badcode", "sofakinggoated", "Jev"]
-    msg := Format("{} 🔫 COD", enemies[Random(1,4)])
+    msgTpl := forCod ? "COD 🔫 {}" : "{} 🔫 COD"
+    msg := Format(msgTpl, enemies[Random(1,4)])
     return msg
 }
 
-sendNotification(msg, codScore, crashScore) { 
-    logDebug(msg)
-    TrayTip(Format("{} | cod: {} crash: {}", msg, codScore, crashScore))
+;todo: refactor this stuff
+sendNotification(msg, codScore, crashScore) {
+    notification := Format("{} | cod {} - crash {}", msg, codScore, crashScore)
+    TrayTip(notification)
+    notifyDiscord(notification)
 }
+; - don't like this being in the game logic
+; - perhaps the game should return the notification and the traytip/discord should be part of main
+; - this would keep io out of the game logic
+notifyDiscord(notification) {
+    webhook_configPath := "webhooks_url.txt"
+    if (!FileExist(webhook_configPath)) { 
+        return
+    }
+    url := FileRead(webhook_configPath)
+    whr := ComObject("WinHttp.WinHttpRequest.5.1")
+    whr.Open("POST", url, true)
+    whr.SetRequestHeader("Content-Type", "application/json")
+    reqBody := Format('{ "content": "{}" }', notification)
+    logDebug(reqBody)
+    whr.Send(reqBody)
+    whr.WaitForResponse()
+    if (whr.Status < 299) {
+        logDebug("discord webhook success")
+    } else {
+        logError(Format("discord webhook failed: {} {}", whr.Status, whr.ResponseText))
+    }
+}
+;end todo
