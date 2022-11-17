@@ -52,7 +52,7 @@ monitorCod(isRunning) {
 saveState(currentState) {
     stateFile := "state.csv"
     FileDelete(stateFile)
-    FileAppend(Format("{},{},{},{},{},{}`n", currentState.codStreak, currentState.codStreakIndex, currentState.codScore, currentState.crashStreak, currentState.crashStreakIndex, currentState.crashScore), stateFile)
+    FileAppend(Format("{},{},{},{},{},{},`n", currentState.codStreak, currentState.codStreakIndex, currentState.codScore, currentState.crashStreak, currentState.crashStreakIndex, currentState.crashScore), stateFile)
 }
 
 loadState() { 
