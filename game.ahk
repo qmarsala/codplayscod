@@ -17,6 +17,7 @@ processState(currentState, didCrash) {
         result.messages.Push(Format("Game Over, {} won", winner))
         result.newState := {codStreak: 0, codStreakIndex: 1, codScore: 0, crashStreak: 0, crashStreakIndex: 1, crashScore: 0 }
     }
+    result.messages.Push(Format("COD: {} - CRASH: {}", result.newState.codScore, result.newState.crashScore))
     return result
 }
 
