@@ -17,11 +17,16 @@ processState(currentState, didCrash) {
         result.messages.Push(Format("Game Over, {} won", winner))
         result.newState := {codStreak: 0, codStreakIndex: 1, codScore: 0, crashStreak: 0, crashStreakIndex: 1, crashScore: 0 }
     }
-    result.messages.Push(Format("COD: {} - CRASH: {}", result.newState.codScore, result.newState.crashScore))
+    
+    round := result.newState.codScore + result.newState.crashScore
+    if (Mod(round, 4) = 0) {
+        result.messages.Push(Format("COD: {} - CRASH: {}", result.newState.codScore, result.newState.crashScore))
+    }
     return result
 }
 
 handleCrash(currentState) {
+    logDebug("cod crashed")
     newCrashStreak := currentState.crashStreak + 1
     newCrashScore := currentState.crashScore + 1
     newCodScore := currentState.codScore
@@ -30,7 +35,6 @@ handleCrash(currentState) {
         ? callInStreak(generateEnemy(), newCrashStreak, currentState.crashStreakIndex) 
         : { msg: "", streakIndex: currentState.crashStreakIndex }
     killFeed := generateKillFeed(false)
-
 
     return {
         messages: [killFeed, streakResult.msg],
@@ -46,6 +50,7 @@ handleCrash(currentState) {
 }
 
 handleClose(currentState){
+    logDebug("cod closed without crashing")
     newCrashScore := currentState.crashScore
     newCodStreak := currentState.codStreak + 1
     newCodScore := currentState.codScore + 1

@@ -5,8 +5,6 @@
 SetWorkingDir A_ScriptDir
 
 state := loadState()
-logInfo(Format("ready - codStreak:{} codStreakIndex:{} | crashStreak:{} crashStreakIndex:{}", state.codStreak, state.codStreakIndex, state.crashStreak, state.crashStreakIndex))
-
 codIsRunning := false
 loop {
     monitorResult := monitorCod(codIsRunning)
@@ -109,5 +107,6 @@ loadState() {
                 state.crashScore := A_LoopField
         }
     }
+    logDebug(Format("ready - codStreak:{} codStreakIndex:{} | crashStreak:{} crashStreakIndex:{}", state.codStreak, state.codStreakIndex, state.crashStreak, state.crashStreakIndex))
     return state
 }
