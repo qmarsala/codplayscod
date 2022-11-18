@@ -14,8 +14,10 @@ loop {
     codIsClosing := monitorResult.codIsClosing
     if (codIsClosing) {
         didCrash := monitorResult.codHasCrashed
-        state := processState(state, didCrash)
+        result := processState(state, didCrash)
+        state := result.newState
         saveState(state)
+        sendNotifications(result.messages)
     }
     sleepSeconds := codIsRunning ? 3 : 30
     Sleep(sleepSeconds * 1000)
@@ -46,6 +48,34 @@ monitorCod(isRunning) {
         }
         result := {codIsRunning: stillRunning, codHasCrashed: false, codIsClosing: false}
         return result
+    }
+}
+
+sendNotifications(notifications) {
+    for notification in notifications {
+        if (notification != "") {
+            notifyDiscord(notification)
+        }
+    }
+}
+
+notifyDiscord(notification) {
+    webhook_configPath := "webhooks_url.txt"
+    if (!FileExist(webhook_configPath)) { 
+        return
+    }
+    url := FileRead(webhook_configPath)
+    whr := ComObject("WinHttp.WinHttpRequest.5.1")
+    whr.Open("POST", url, true)
+    whr.SetRequestHeader("Content-Type", "application/json")
+    reqBody := Format('{ "content": "{}" }', notification)
+    logDebug(reqBody)
+    whr.Send(reqBody)
+    whr.WaitForResponse()
+    if (whr.Status < 299) {
+        logDebug("discord webhook success")
+    } else {
+        logError(Format("discord webhook failed: {} {}", whr.Status, whr.ResponseText))
     }
 }
 
