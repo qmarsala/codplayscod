@@ -13,7 +13,7 @@ jobs:
         with:
           node-version: 16
       - run: |
-          cd codplayscod-bot &&
+          cd api &&
           npm install &&
           npm run publish
         env:
