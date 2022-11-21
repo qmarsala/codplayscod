@@ -35,7 +35,8 @@ const processNotification = async (notification, env) => {
     const opponent = player === "cod"
         ? "crash"
         : "cod";
-    const currentState = await env.DATA.get("state") ?? {};
+    const stateJson = await env.DATA.get("state") ?? "{}"
+    const currentState = JSON.parse(stateJson);
     const currentStreak = currentState[player]?.streak ?? 0;
     const currentStreakIndex = currentState[player]?.streakIndex ?? 0;
     const currentScore = currentState[player]?.score ?? 0;
@@ -44,7 +45,7 @@ const processNotification = async (notification, env) => {
     
     console.log(newState);
     console.log(JSON.stringify(newState));
-    
+
     newState[player] ??= { score: 0, streak: 0, streakIndex: 0 };
     newState[opponent] ??= { score: 0, streak: 0, streakIndex: 0 };
 
