@@ -1,35 +1,37 @@
 import { Router } from 'itty-router';
 
-const CRASH = "crashed";
-const POINT_STREAKS = [
-    { requirement: 3, name: "✈️ UAV" },
-    { requirement: 4, name: "🛩️ Counter UAV" },
-    { requirement: 12, name: "🛰️ Advanced UAV" },
-    { requirement: 30, name: "☢️ Tactical Nuke" }
-];
-const PLAYERS = ["zamboni", "badcode", "sofakinggoated", "Jev"];
-
-const getRandomInt = (min, max) => {
-    min = Math.ceil(min);
-    max = Math.floor(max);
-    return Math.floor(Math.random() * (max - min + 1)) + min;
-}
-
 const processNotification = async (notification, env) => {
     console.log(notification);
+    const CRASH = "crashed";
     const player = notification.status === CRASH
         ? "crash"
         : "cod";
     const opponent = player === "cod"
         ? "crash"
         : "cod";
+    const currentState = await getCurrentState(env);
+    const result = await processState(currentState, player, opponent);
+    await saveState(result.newState, env);
+    return generateDiscordMessages(result, player, opponent);
+}
+
+const getCurrentState = async (env) => {
     const stateJson = await env.DATA.get("state") ?? "{}"
     const currentState = JSON.parse(stateJson);
-    const currentStreak = currentState[player]?.streak ?? 0;
-    const currentStreakIndex = currentState[player]?.streakIndex ?? 0;
-    const currentScore = currentState[player]?.score ?? 0;
-    const currentOppenentScore = currentState[opponent]?.score ?? 0;
-    const newState = { ...currentState }
+    return currentState;
+}
+
+const processState = async (state, player, opponent) => {
+    const POINT_STREAKS = [
+        { requirement: 3, name: "✈️ UAV" },
+        { requirement: 4, name: "🛩️ Counter UAV" },
+        { requirement: 12, name: "🛰️ Advanced UAV" },
+        { requirement: 30, name: "☢️ Tactical Nuke" }
+    ];
+    const currentStreak = state[player]?.streak ?? 0;
+    const currentStreakIndex = state[player]?.streakIndex ?? 0;
+    const currentScore = state[player]?.score ?? 0;
+    const newState = { ...state }
     newState[player] ??= { score: 0, streak: 0, streakIndex: 0 };
     newState[opponent] ??= { score: 0, streak: 0, streakIndex: 0 };
     newState[player].score = currentScore + 1;
@@ -46,19 +48,35 @@ const processNotification = async (notification, env) => {
     newState[player].streakIndex = newStreakIndex;
     newState[opponent].streak = 0;
     newState[opponent].streakIndex = 0;
+    return {
+        newState,
+        isStreak,
+        currentStreakReward
+    };
+}
 
-    await env.DATA.put("state", JSON.stringify(newState));
+const saveState = async (state, env) => {
+    await env.DATA.put("state", JSON.stringify(state));
+}
 
+const generateDiscordMessages = (stateResult, player, opponent) => {
+    const PLAYERS = ["zamboni", "badcode", "sofakinggoated", "Jev"];
+    const getRandomInt = (min, max) => {
+        min = Math.ceil(min);
+        max = Math.floor(max);
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
     const randomPlayer = PLAYERS[getRandomInt(0, 3)];
     const killFeedMessage = player === "cod"
         ? `cod 🔫 ${randomPlayer}`
         : `${randomPlayer} 🔫 cod`;
-    const newScore = newState[player].score;
+    const currentOppenentScore = stateResult.newState[opponent]?.score ?? 0;
+    const newScore = stateResult.newState[player]?.score ?? 0;
     const scoreMessage = (newScore + currentOppenentScore) % 4 === 0
         ? ` | ${player}: ${newScore} - ${opponent}: ${currentOppenentScore}`
         : "";
-    const killStreakMessage = isStreak
-        ? `${player} called in a ${currentStreakReward.name}`
+    const killStreakMessage = stateResult.isStreak
+        ? `${player} called in a ${stateResult.currentStreakReward.name}`
         : "";
     return [`${killFeedMessage}${scoreMessage}`, killStreakMessage]
 }
