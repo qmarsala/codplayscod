@@ -29,41 +29,47 @@ const getRandomInt = (min, max) => {
 
 const processNotification = async (notification, env) => {
     console.log(notification);
-    let player = notification.status === CRASH
+    const player = notification.status === CRASH
         ? "crash"
         : "cod";
-    let opponent = player === "cod"
+    const opponent = player === "cod"
         ? "crash"
         : "cod";
-    let currentScore = parseInt(await env.DATA.get(`${player}_score`) ?? 0);
-    let currentOppenentScore = parseInt(await env.DATA.get(`${opponent}_score`) ?? 0);
-    let currentStreak = parseInt(await env.DATA.get(`${player}_streak`) ?? 0);
-    let currentStreakIndex = parseInt(await env.DATA.get(`${player}_streakIndex`) ?? 0);
-    let currentStreakReward = POINT_STREAKS[currentStreakIndex];
-    let newScore = currentScore + 1;
-    let newStreak = currentStreak + 1;
-    let isStreak = newStreak >= currentStreakReward.requirement;
+    const currentState = await env.DATA.get("state") ?? {};
+    const currentStreak = currentState[player]?.streak ?? 0;
+    const currentStreakIndex = currentState[player]?.streakIndex ?? 0;
+    const currentScore = currentState[player]?.score ?? 0;
+    const currentOppenentScore = currentState[opponent]?.score ?? 0;
+    const newState = { ...currentState }
+    newState[player] ??= { score: 0, streak: 0, streakIndex: 0 };
+    newState[opponent] ??= { score: 0, streak: 0, streakIndex: 0 };
+
+    newState[player].score = currentScore + 1;
+    newState[player].streak = currentStreak + 1;
+
+    const currentStreakReward = POINT_STREAKS[currentStreakIndex];
+    const isStreak = newState[player].streak >= currentStreakReward.requirement;
     let newStreakIndex = isStreak
         ? currentStreakIndex + 1
         : currentStreakIndex;
     newStreakIndex = newStreakIndex >= POINT_STREAKS.length
         ? 0
         : newStreakIndex
+    newState[player].streakIndex = newStreakIndex;
+    newState[opponent].streak = 0;
+    newState[opponent].streakIndex = 0;
 
-    await env.DATA.put(`${player}_score`, newScore);
-    await env.DATA.put(`${player}_streak`, newStreak);
-    await env.DATA.put(`${player}_streakIndex`, newStreakIndex);
-    await env.DATA.put(`${opponent}_streakIndex`, 0);
-    await env.DATA.put(`${opponent}_streak`, 0);
+    await env.DATA.put("state", JSON.stringify(newState));
 
-    let randomPlayer = PLAYERS[getRandomInt(0, 3)];
-    let killFeedMessage = player === "cod"
+    const randomPlayer = PLAYERS[getRandomInt(0, 3)];
+    const killFeedMessage = player === "cod"
         ? `cod 🔫 ${randomPlayer}`
         : `${randomPlayer} 🔫 cod`;
-    let scoreMessage = (newScore + currentOppenentScore) % 4 === 0
+    const newScore = newState[player].score;
+    const scoreMessage = (newScore + currentOppenentScore) % 4 === 0
         ? ` | ${player}: ${newScore} - ${opponent}: ${currentOppenentScore}`
         : "";
-    let killStreakMessage = isStreak
+    const killStreakMessage = isStreak
         ? `${player} called in a ${currentStreakReward.name}`
         : "";
     return [`${killFeedMessage}${scoreMessage}`, killStreakMessage]
@@ -71,9 +77,9 @@ const processNotification = async (notification, env) => {
 
 const sendDiscordMessages = async (messages, env) => {
     console.log("sending discord messages");
-    let msgs = messages.filter(m => m.length > 0);
+    const msgs = messages.filter(m => m.length > 0);
     for (var m of msgs) {
-        let response = await fetch(env.DISCORD_WEBHOOK, {
+        const response = await fetch(env.DISCORD_WEBHOOK, {
             method: 'POST',
             headers: {
                 'Accept': 'application/json',
