@@ -41,8 +41,15 @@ const processNotification = async (notification, env) => {
     const currentScore = currentState[player]?.score ?? 0;
     const currentOppenentScore = currentState[opponent]?.score ?? 0;
     const newState = { ...currentState }
+    
+    console.log(newState);
+    console.log(JSON.stringify(newState));
+    
     newState[player] ??= { score: 0, streak: 0, streakIndex: 0 };
     newState[opponent] ??= { score: 0, streak: 0, streakIndex: 0 };
+
+    console.log(newState);
+    console.log(JSON.stringify(newState));
 
     newState[player].score = currentScore + 1;
     newState[player].streak = currentStreak + 1;
@@ -59,6 +66,8 @@ const processNotification = async (notification, env) => {
     newState[opponent].streak = 0;
     newState[opponent].streakIndex = 0;
 
+    console.log(newState);
+    console.log(JSON.stringify(newState));
     await env.DATA.put("state", JSON.stringify(newState));
 
     const randomPlayer = PLAYERS[getRandomInt(0, 3)];
