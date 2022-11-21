@@ -1,0 +1,17 @@
+post https://codplayscod-bot.qmarsala.workers.dev/
+Content-Type: application/json
+Accept: application/json
+
+{
+    "status": "crashed"
+}
+
+###
+
+post https://codplayscod-bot.qmarsala.workers.dev/
+Content-Type: application/json
+Accept: application/json
+
+{
+    "status": "closed"
+}

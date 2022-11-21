@@ -1,0 +1,7 @@
+name = "codplayscod-bot"
+main = "src/index.js"
+compatibility_date = "2022-11-20"
+
+kv_namespaces = [
+  { binding = "DATA", id = "026ee6dc2ac644df827e91b5e6ec97c4" }
+]

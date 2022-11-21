@@ -1,0 +1,25 @@
+{
+  "name": "codplayscod-bot",
+  "version": "0.0.0",
+  "dependencies": {
+    "discord-interactions": "^3.0.0",
+    "itty-router": "^2.5.1"
+  },
+  "devDependencies": {
+    "eslint": "^8.9.0",
+    "eslint-config-prettier": "^8.4.0",
+    "eslint-plugin-prettier": "^4.0.0",
+    "node-fetch": "^3.2.2",
+    "prettier": "^2.5.1",
+    "wrangler": "2.4.2"
+  },
+  "private": true,
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "wrangler dev src/server.js",
+    "fix": "eslint --fix '**/*.js'",
+    "lint": "eslint '**/*.js'",
+    "register": "node src/register.js",
+    "publish": "wrangler publish"
+  }
+}
