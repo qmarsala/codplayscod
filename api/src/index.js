@@ -38,7 +38,7 @@ const processState = async (state, player, opponent) => {
     newState[player].streak = currentStreak + 1;
 
     const currentStreakReward = POINT_STREAKS[currentStreakIndex];
-    const isStreak = newState[player].streak >= currentStreakReward.requirement;
+    const isStreak = newState[player].streak === currentStreakReward.requirement;
     let newStreakIndex = isStreak
         ? currentStreakIndex + 1
         : currentStreakIndex;
