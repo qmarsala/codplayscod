@@ -9,18 +9,6 @@ const POINT_STREAKS = [
 ];
 const PLAYERS = ["zamboni", "badcode", "sofakinggoated", "Jev"];
 
-class JsonResponse extends Response {
-    constructor(body, init) {
-        const jsonBody = JSON.stringify(body);
-        init = init || {
-            headers: {
-                'content-type': 'application/json;charset=UTF-8',
-            },
-        };
-        super(jsonBody, init);
-    }
-}
-
 const getRandomInt = (min, max) => {
     min = Math.ceil(min);
     max = Math.floor(max);
@@ -94,6 +82,17 @@ const sendDiscordMessages = async (messages, env) => {
     return true;
 }
 
+class JsonResponse extends Response {
+    constructor(body, init) {
+        const jsonBody = JSON.stringify(body);
+        init = init || {
+            headers: {
+                'content-type': 'application/json;charset=UTF-8',
+            },
+        };
+        super(jsonBody, init);
+    }
+}
 const router = Router();
 router.post('/', async (request, env) => {
     let notification = await request.json();
