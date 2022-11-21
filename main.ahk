@@ -1,6 +1,5 @@
 #SingleInstance force
 #Include %A_ScriptDir%\logger.ahk
-#Include %A_ScriptDir%\game.ahk
 
 SetWorkingDir A_ScriptDir
 
@@ -46,11 +45,11 @@ monitorCod(isRunning) {
 }
 
 sendNotification(didCrash) {
-    url := "post https://codplayscod-bot.qmarsala.workers.dev/"
+    url := "https://codplayscod-bot.qmarsala.workers.dev/"
     whr := ComObject("WinHttp.WinHttpRequest.5.1")
     whr.Open("POST", url, true)
     whr.SetRequestHeader("Content-Type", "application/json")
-    reqBody := Format('{ "content": "{}" }', didCrash ? '{"satus": "crashed"}' : '{"satus": "closed"}');
+    reqBody := didCrash ? '{"status": "crashed"}' : '{"status": "closed"}'
     logDebug(reqBody)
     whr.Send(reqBody)
     whr.WaitForResponse()
