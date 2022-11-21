@@ -12,9 +12,10 @@ jobs:
       - uses: actions/setup-node@v2
         with:
           node-version: 16
-      - run: cd codplayscod-bot
-      - run: npm install
-      - run: npm run publish
+      - run: |
+          cd codplayscod-bot &&
+          npm install &&
+          npm run publish
         env:
           CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
           CF_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
