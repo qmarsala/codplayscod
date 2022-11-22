@@ -1,5 +1,5 @@
 import { Router } from 'itty-router';
-//import { execute } from './cron';
+import { execute } from './cron';
 
 class JsonResponse extends Response {
     constructor(body, init) {
@@ -28,9 +28,9 @@ router.post('/', async (request, env) => {
 router.all('*', () => new Response('Not Found.', { status: 404 }));
 
 export default {
-    // async scheduled(event, env, ctx) {
-    //     ctx.waitUntil(execute(env));
-    // },
+    async scheduled(event, env, ctx) {
+        ctx.waitUntil(execute(env));
+    },
     async fetch(request, env) {
         return router.handle(request, env);
     },
