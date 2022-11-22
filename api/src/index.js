@@ -23,7 +23,7 @@ const router = Router();
 router.post('/', async (request, env) => {
     const notification = await request.json();
     await logStatus(notification, env);
-    return new JsonResponse({ status: 202 });
+    return new JsonResponse({ "loggedStatus": notification.status }, { status: 202 });
 });
 router.get('/', async (request, env) => {
     const state = await env.DATA.get("state");
