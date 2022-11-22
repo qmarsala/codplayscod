@@ -32,7 +32,7 @@ const generateMessages = (roundResult, player, opponent) => {
     const messages = [];
     messages.push(`${killFeedMessage}${scoreMessage}`);
     if (killStreakMessage.length > 0) {
-        messages.push(killFeedMessage);
+        messages.push(killStreakMessage);
     }
     return messages;
 }
