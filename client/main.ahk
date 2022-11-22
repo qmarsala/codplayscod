@@ -45,7 +45,7 @@ monitorCod(isRunning) {
 }
 
 sendNotification(didCrash) {
-    url := "https://codplayscod-bot.qmarsala.workers.dev/"
+    url := "https://codplayscod-bot.qmarsala.workers.dev/status"
     whr := ComObject("WinHttp.WinHttpRequest.5.1")
     whr.Open("POST", url, true)
     whr.SetRequestHeader("Content-Type", "application/json")

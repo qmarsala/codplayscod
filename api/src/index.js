@@ -9,6 +9,12 @@ const logStatus = async (notification, env) => {
 
 const router = Router();
 router.post('/', async (request, env) => {
+    //todo: handle discord commands to "call in streaks", and "check score"
+    const body = await request.json();
+    console.log(`request:${JSON.stringify(request)}, body: ${JSON.stringify(body)}`);
+    return new Response({ status: 204 });
+});
+router.post('/status', async (request, env) => {
     const notification = await request.json();
     await logStatus(notification, env);
     return new Response({ "loggedStatus": notification.status }, { status: 202 });
