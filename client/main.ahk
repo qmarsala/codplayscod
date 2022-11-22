@@ -53,7 +53,7 @@ sendNotification(didCrash) {
     logDebug(reqBody)
     whr.Send(reqBody)
     whr.WaitForResponse()
-    if (whr.Status < 299) {
+    if (whr.Status >= 200 && whr.Status < 300) {
         logDebug("sendNotification: success")
     } else {
         logError(Format("sendNotification: failed - {} {}", whr.Status, whr.ResponseText))
