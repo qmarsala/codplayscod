@@ -10,7 +10,8 @@ const sendDiscordMessages = async (messages, env) => {
             },
             body: JSON.stringify({ "content": m })
         });
-        if (response.status > 299) {
+        if (response.status > 299) { 
+            console.log(response.statusText);
             return false;
         }
     }
