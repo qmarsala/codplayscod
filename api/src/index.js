@@ -25,6 +25,10 @@ router.post('/', async (request, env) => {
     await logStatus(notification, env);
     return new JsonResponse({ status: 202 });
 });
+router.get('/', async (request, env) => {
+    const state = await env.DATA.get("state");
+    return new JsonResponse(state ?? {}, { status: 200 });
+});
 router.all('*', () => new Response('Not Found.', { status: 404 }));
 
 export default {
