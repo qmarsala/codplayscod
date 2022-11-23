@@ -4,19 +4,28 @@ const POINT_STREAKS = [
     { requirement: 12, name: "🛰️ Advanced UAV" },
     { requirement: 30, name: "☢️ Tactical Nuke" }
 ];
+const PLAYERS = [
+    "zamboni", 
+    "badcode", 
+    "sofakinggoated", 
+    "SeaNanners",
+    "Hutch",
+    "Jev",
+    "NadeShot",
+    "Scump"
+];
 const TEAM_NAMES = {
     "cod": "CoD",
     "crash": "TheySeeMeCrashin"
 }
 
 const generateMessages = (roundResult, player, opponent) => {
-    const PLAYERS = ["zamboni", "badcode", "sofakinggoated", "Jev"];
     const getRandomInt = (min, max) => {
         min = Math.ceil(min);
         max = Math.floor(max);
         return Math.floor(Math.random() * (max - min + 1)) + min;
     }
-    const randomPlayer = PLAYERS[getRandomInt(0, 3)];
+    const randomPlayer = PLAYERS[getRandomInt(0, PLAYERS.length - 1)];
     const killFeedMessage = player === "cod"
         ? `${TEAM_NAMES["cod"]} 🔫 ${randomPlayer}`
         : `${randomPlayer} 🔫 ${TEAM_NAMES["cod"]}`;
